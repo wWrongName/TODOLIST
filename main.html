@@ -1,0 +1,99 @@
+<head>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/superhero/bootstrap.min.css" rel="stylesheet" integrity="sha384-LS4/wo5Z/8SLpOLHs0IbuPAGOWTx30XSoZJ8o7WKH0UJhRpjXXTpODOjfVnNjeHu" crossorigin="anonymous">
+    <meta charset="utf-8"/>
+    <style type="text/css">
+        body {
+            background-image: url(https://w-dog.ru/wallpapers/13/6/376765897042485.jpg);
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-size: cover;
+        }
+    </style>
+</head>
+
+<body onload="get_data()">
+    <script type="text/javascript">
+
+        let remove = function(removableId) {
+            $.ajax({
+                type: "DELETE",
+                url: 'items' + '/' + removableId,
+                success: () => {
+                    console.log("Deleted. id: " + removableId);
+                    $.get('items', f);
+                },
+                error: () => {
+                    alert("Not Acceptable. id: " + removableId);
+                }
+            });
+        };
+
+        let insert = function() {
+            let inputText = document.getElementById("form");
+            let promise = new Promise(function (resolve, reject) {
+                let xmlRequest = new XMLHttpRequest();
+                xmlRequest.open("PUT", 'items');
+                xmlRequest.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                xmlRequest.send(JSON.stringify({'id':0,
+                                                'text':inputText.value,}));
+                xmlRequest.onload = function() {
+                    if (this.status == 200){
+                        console.log("Element was successfully inserted");
+                    } else {
+                        reject("Error");
+                    }
+                };
+                $.get('items', f);
+            });
+            promise.then(
+                resolve => alert(resolve),
+                reject => alert(reject)
+            );
+        };
+
+        let update = async function(objectId) {
+            let objectText = prompt('Enter new name', 'empty');
+            let promise = new Promise ((resolve, reject) =>{
+                let xmlRequest = new XMLHttpRequest();
+                xmlRequest.open("POST", 'items');
+                xmlRequest.setRequestHeader('Content-Type', 'application/json; charset=utf-8');
+                xmlRequest.send(JSON.stringify({"id":objectId,
+                                                "text":objectText}));
+                xmlRequest.oload = function() {
+                     if (this.status == 200){
+                        console.log(objectId + " was successfully updated");
+                    } else {
+                        reject(objectId + " was not updated");
+                    }
+                };
+                $.get('items', f);
+            });
+            let result = await promise;
+            alert(result);
+        };
+
+        let f = function(data, status) {
+            console.log(data, status);
+            let table = document.getElementById("table");
+            let html = "";
+            data.forEach(function (el) {
+                html += `<tr class="table-dark"><td>${el.id}</td><td onclick="update(${el.id});">${el.text}</td><td onclick="remove(${el.id});">${el.delete}</td></tr>`
+            });
+            table.innerHTML = html;
+            return html;
+        };
+        $.get('items', f);
+    </script>
+    <h1 style="text-align: center">TODOLIST</h1>
+    <table class="table table-hover" >
+        <thead>
+            <td scope="col">ID</td>
+            <td scope="col">Element</td>
+            <td scope="col">Delete</td>
+        </thead>
+        <tbody id="table"></tbody>
+    </table>
+    <input class="form-control mr-sm-2" id="form" type="text" value="" placeholder="Place object">
+    <button class="btn btn-secondary my-2 my-sm-0" type="submit" onclick="insert()">Insert</button>
+</body>
